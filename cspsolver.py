@@ -49,16 +49,14 @@ def solve_CSP(problem):
     #print 'before CP:'
     #print puzzle.display_state()
     
-    problem.constraint_propagation()
+    if not problem.constraint_propagation():
+        return False, 'No solution.'
 
     #print 'after CP:'
     #print puzzle.display_state()
 
     if problem.is_solved():
         return True, problem.get_solution()
-
-    if problem.is_unsolvable():
-        return False, 'No solution.'
 
     variable = problem.get_variable_for_splitting()
     domain = problem.get_variable_domain(variable)

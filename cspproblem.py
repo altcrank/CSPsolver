@@ -12,7 +12,11 @@ class CSPProblem:
     """A CSP problem.
     
     A class representing an instance of a CSP problem
-    and giving various attributes for manipulating that CSP problem"""
+    and giving various attributes for manipulating that CSP problem.
+
+    The CSP problem is defined as solved when all of the variables
+    are assigned only one value, and the values do not contradict
+    the constraints."""
 
     variables = dict()
     """A mapping from variables to their domains of possible values."""
@@ -41,7 +45,10 @@ class CSPProblem:
                 print 'WTF!!!'
             domain_var1 = self.variables[var1]
             domain_var2 = self.variables[var2]
-            self.arc_consistency(domain_var1, domain_var2)
+            if not self.arc_consistency(domain_var1, domain_var2):
+                return False
+
+        return True
 
     def arc_consistency(self, domain1, domain2):
         """Performs arc consistency on the two domains assuming != constraint.
@@ -51,10 +58,16 @@ class CSPProblem:
         if len(domain1) == 1:
             for value in domain1:
                 domain2.discard(value)
+                if not domain2:
+                    return False
                 
         if len(domain2) == 1:
             for value in domain2:
                 domain1.discard(value)
+                if not domain1:
+                    return False
+
+        return True
                 
     def is_solved(self):
         """Checks if the CSP is solved.
@@ -66,17 +79,6 @@ class CSPProblem:
                 return False
 
         return True
-
-    def is_unsolvable(self):
-        """Check if the CSP became unsolvable.
-
-        Check if any of the variables is left with an empty domain."""
-
-        for variable, domain in self.variables.iteritems():
-            if not domain:
-                return True
-
-        return False
 
     def get_solution(self):
         """Returns the solution to the CSP.
