@@ -18,20 +18,26 @@ class CSPProblem:
     are assigned only one value, and the values do not contradict
     the constraints."""
 
-    variables = dict()
+    variable_domains = dict()
     """A mapping from variables to their domains of possible values."""
 
-    constraints = set()
+    variable_domain_sizes = []
+    """A mapping from variables to domain sizes"""
+
+    constraints = []
     """The constraints describing the CSP problem."""
 
-    def set_variables(self, variables):
-        self.variables = copy.deepcopy(variables)
+    def set_variables(self, variable_domains):
+        self.variable_domains = copy.deepcopy(variable_domains)
+        self.variable_domain_sizes = list(range(len(variable_domains)))
+        for variable, domain in self.variable_domains.iteritems():
+            self.variable_domain_sizes[variable] = len(domain)
 
     def set_constraints(self, constraints):
         self.constraints = copy.deepcopy(constraints)
 
     def add_constraints(self, constraints):
-        self.constraints.update(copy.deepcopy(constraints))
+        self.constraints.extend(copy.deepcopy(constraints))
 
     def constraint_propagation(self):
         """Performs constraint propagation on the CSP problem"""
@@ -39,34 +45,54 @@ class CSPProblem:
         #TODO: for optimization maybe loop through variables
         #and make all constraints including them arc consistent.
         #TODO: after that order variables by domain sizes. Don't forget to update!!!
+        
+        #order constriants by their variables' domain sizes
+        self.constraints.sort(key=lambda constraint: min(self.variable_domain_sizes[constraint[0]], self.variable_domain_sizes[constraint[1]]))
+
+        #do constraint propagation
         for constraint in self.constraints:
             var1, var2 = constraint
-            if var1 == var2:
-                print 'WTF!!!'
-            domain_var1 = self.variables[var1]
-            domain_var2 = self.variables[var2]
-            if not self.arc_consistency(domain_var1, domain_var2):
+            consistent, stop = self.arc_consistency(var1, var2)
+            if not consistent:
                 return False
+            if stop:
+                break
 
         return True
 
-    def arc_consistency(self, domain1, domain2):
+    def arc_consistency(self, var1, var2):
         """Performs arc consistency on the two domains assuming != constraint.
 
         Removes from the domains the values that do not have support in the other domain."""
 
-        if len(domain1) == 1:
-            for value in domain1:
-                domain2.discard(value)
-                if not domain2:
-                    return False
-                
-        if len(domain2) == 1:
-            for value in domain2:
-                domain1.discard(value)
-                if not domain1:
-                    return False
+        smaller = var1
+        bigger = var2
+        if self.variable_domain_sizes[var1] > self.variable_domain_sizes[var2]:
+            smaller = var2
+            bigger = var1
 
+        #if self.variable_domain_sizes[smaller] > 1:
+        #    return True, True
+
+        if not self.half_arc_consistency(smaller, bigger):
+            return False, False
+
+        if not self.half_arc_consistency(bigger, smaller):
+            return False, False
+
+        return True, False
+
+
+    def half_arc_consistency(self, var1, var2):
+        if self.variable_domain_sizes[var1] == 1:
+            domain1 = self.variable_domains[var1]
+            domain2 = self.variable_domains[var2]
+            for value in domain1:
+                if value in domain2:
+                    domain2.remove(value)
+                    self.variable_domain_sizes[var2] -= 1
+                    if self.variable_domain_sizes[var2] == 0:
+                        return False
         return True
                 
     def is_solved(self):
@@ -74,8 +100,14 @@ class CSPProblem:
 
         A CSP is solved if every variable is assigned exactly 1 value."""
 
-        for variable, domain in self.variables.iteritems():            
+        for variable, domain in self.variable_domains.iteritems():
             if len(domain) != 1:
+                return False
+
+        return True
+    
+        for domain_size in self.variable_domain_sizes:            
+            if domain_size != 1:
                 return False
 
         return True
@@ -85,14 +117,14 @@ class CSPProblem:
 
         Returns the variables with their "assigned values" (i.e. the domains of size 1)"""
 
-        return self.variables
+        return self.variable_domains
 
     def display_state(self):
         """Prints a current state of the CSP."""
 
         state = ''
-        sorted_variables = sorted(self.variables.items(), key = lambda el: el[0])
-        for variable, domain in sorted_variables:
+        sorted_variable_domains = sorted(self.variable_domains.items(), key = lambda el: el[0])
+        for variable, domain in sorted_variable_domains:
             state += str(variable) + ': ' + str(domain) + '\n'
 
         return state
@@ -102,7 +134,7 @@ class CSPProblem:
 
         Given a variable return the set of its allowed values."""
 
-        return self.variables[variable]
+        return self.variable_domains[variable]
 
 
     def get_variable_for_splitting(self):
@@ -123,7 +155,8 @@ class CSPProblem:
         best_variables = set()
         smallest_domain_size = sys.maxint
 
-        for var, domain in self.variables.iteritems():
+        #for var, domain_size in enumerate(self.variable_domain_sizes):
+        for var, domain in self.variable_domains.iteritems():
             domain_size = len(domain)
             if domain_size <= 1:
                 continue
@@ -148,8 +181,11 @@ class CSPProblem:
         which have not yet been assigned a value."""
 
         unassigned_variables = []
-        for variable, domain in self.variables.iteritems():
-            if len(domain) != 1:
+        #for variable, domain_size in self.variable_domain_sizes:
+        for variable, domain in self.variable_domains.iteritems():
+            domain_size = len(domain)
+
+            if domain_size != 1:
                 unassigned_variables.append(variable)
 
         return unassigned_variables
@@ -160,7 +196,8 @@ class CSPProblem:
         Restrict the domain of the variable 'variable' to be
         the set with one element 'value'."""
 
-        self.variables[variable] = {value}
+        self.variable_domains[variable] = {value}
+        self.variable_domain_sizes[variable] = 1
         
     def copy(self):
         """Copies the CSP problem.
@@ -170,7 +207,8 @@ class CSPProblem:
 
         csp_copy = CSPProblem()
 
-        csp_copy.variables = copy.deepcopy(self.variables)
+        csp_copy.variable_domains = copy.deepcopy(self.variable_domains)
+        csp_copy.variable_domain_sizes = copy.deepcopy(self.variable_domain_sizes)
         csp_copy.constraints = copy.deepcopy(self.constraints)
 
         return csp_copy

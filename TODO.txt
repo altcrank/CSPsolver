@@ -1,5 +1,6 @@
 Just optimizations:
-1. Order constraints by the minimum of the domain sizes of the variables present in the constraint
+1. Order constraints by the minimum of the domain sizes of the variables present in the constraint.
+DONE: splits count down from ~2600 to ~1600. runtime from ~12sec to ~7.5sec
 Optional:
 2. Don't copy stuff as much.
 3. Make it iterative, not recursive.

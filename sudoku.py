@@ -24,7 +24,7 @@ class Sudoku:
     variables = dict()
     """The initial domain for unset variables of a sudoku puzzle."""
 
-    constraints = set()
+    constraints = []
     """The constraints describing the sudoku rules."""
 
     def __init__(self, sudoku_string = ''):
@@ -105,7 +105,7 @@ class Sudoku:
         else:
             constraint = (var2, var1)
         if not constraint in self.constraints:
-            self.constraints.add(constraint)
+            self.constraints.append(constraint)
 
     def get_variables(self):
         return self.variables
