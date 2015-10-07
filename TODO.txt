@@ -1,0 +1,13 @@
+Just optimizations:
+1. Order constraints by the minimum of the domain sizes of the variables present in the constraint.
+DONE: splits count down from ~2600 to ~1600. runtime from ~12sec to ~7.5sec
+Optional:
+2. Don't copy stuff as much.
+3. Make it iterative, not recursive.
+
+Actual Constraint Satisfaction stuff:
+1. Tie breaker for Minimum Remaining Values (mrv) Heuristic. Pick variable used in the most constraints.
+2. Value picking heuristic: pick the value with highest tightness (leads to a more productive constraint propagation)
+3. Delete constraints that are already satisfied.
+Optional:
+4. Backjumping. (Keep a dependancy graph, that would tell us exactly wich split along the branch led to a conflict and backjump straight to that split, instead of backtracking just one level up)

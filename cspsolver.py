@@ -7,11 +7,12 @@
 
 import sys
 from sudoku import Sudoku
+from cspproblem import CSPProblem
 
-states = 0
-"""A global variable used by the solve_sudoku function,
-and the constraint_satisfaction function to count the number of states
-generated while solving the puzzle."""
+splits = 0
+"""A global variable used by the solve_CSP function,
+and the constraint_satisfaction function to count the number of splits
+done while solving the CSP problem."""
 
 
 def solve_sudoku(puzzle):
@@ -21,76 +22,53 @@ def solve_sudoku(puzzle):
     If it succeeds it will print the solution.
     Otherwise prints 'No solution'."""
     
-    global states
-    states = 0
+    global splits
+    splits = 0
     
-    (has_solution, solution) = constraint_satisfaction(puzzle)
-    if has_solution:
-        print solution + '\n Explored states: ' + str(states)
+    csp = CSPProblem()
+    csp.set_variables(puzzle.get_variables())
+    csp.set_constraints(puzzle.get_constraints())
+    
+    (has_solution, solution) = solve_CSP(csp)
+    
+    if not has_solution:
+        print 'No solution.\n Splits performed: ' + str(splits)
     else:
-        print 'No solution.\n Explored states: ' + str(states)
+        print puzzle.translate_solution(solution) + '\n Splits performed: ' + str(splits)
+        
 
-def constraint_satisfaction(puzzle):
-    """Solves a sudoku puzzle using a constraint satisfaction algorithm.
+def solve_CSP(problem):
+    """Solves a CSP problem using a constraint satisfaction algorithm.
 
-    Given a sudoku puzzle it solves it using a constraint satisfaction
+    Given a CSP problem it solves it using a constraint satisfaction
     algorithm. Uses Minimum Remaining Values heuristic to choose
-    the next variable to be assigned a value. Performs forward checking."""
+    the variable for splitting. Performs constraint propagation."""
 
-    global states
+    global splits
 
     #print 'before CP:'
     #print puzzle.display_state()
     
-    if not puzzle.constraint_propagation():
+    if not problem.constraint_propagation():
         return False, 'No solution.'
-    
-    #puzzle.constraint_propagation()
     #print 'after CP:'
     #print puzzle.display_state()
 
-    if puzzle.is_solved():
-        return True, puzzle.get_solution()
+    if problem.is_solved():
+        return True, problem.get_solution()
 
-    variable = mrv_var(puzzle)
-    domain = puzzle.get_variable_domain(variable)
+    variable = problem.get_variable_for_splitting()
+    domain = problem.get_variable_domain(variable)
+
     for value in domain:
-        new_puzzle = puzzle.copy()
-        states += 1
-        new_puzzle.set_variable(variable, value)
-        (has_solution, solution) = constraint_satisfaction(new_puzzle)
+        new_problem = problem.copy()
+        splits += 1
+        new_problem.set_variable(variable, value)
+        (has_solution, solution) = solve_CSP(new_problem)
         if has_solution:
             return has_solution, solution
     
     return False, 'No solution.'
-
-def mrv_var(puzzle):
-    """A Minimum Remaining Values Heuristic function.
-
-    Given a puzzle it returns the variable from that puzzle that has still
-    not been assigned a value, and has the least amount of possible values."""
-
-    #variables is a list of variables
-    best_variables = set()
-    smallest_domain_size = sys.maxint
-    variables = puzzle.get_unassigned_variables()
-    assert len(variables) > 0
-    if len(variables) == 0:
-        raise Exception('Minimum Remaining Values Heuristic', 'Puzzle does not have unset variables!')
-
-    for var in variables:
-        domain = puzzle.get_variable_domain(var)
-        domain_size = len(domain)
-        if domain_size == smallest_domain_size:
-            best_variables.add(var)
-        if domain_size < smallest_domain_size:
-            best_variables.clear()
-            best_variables.add(var)
-            smallest_domain_size = domain_size
-
-    assert len(best_variables) > 0
-    variable = best_variables.pop()
-    return variable
 
 
 #Different puzzles follow.

@@ -1,13 +1,11 @@
 #! /usr/bin/env python
 
 # File: sudoku
-# A class representing a sudoku puzzle.
+# A class translating a sudoku puzzle to a CSP problem.
 # Authors:  Georgi Terziev      g.d.terziev@gmail.com
 #           Kasper Bouwens      kas_bouwens@hotmail.com
 
 import math
-import copy
-from collections import deque
 
 class Sudoku:
     """A Sudoku puzzle.
@@ -26,7 +24,7 @@ class Sudoku:
     variables = dict()
     """The initial domain for unset variables of a sudoku puzzle."""
 
-    constraints = set()
+    constraints = []
     """The constraints describing the sudoku rules."""
 
     def __init__(self, sudoku_string = ''):
@@ -107,77 +105,21 @@ class Sudoku:
         else:
             constraint = (var2, var1)
         if not constraint in self.constraints:
-            self.constraints.add(constraint)
+            self.constraints.append(constraint)
 
-    def add_constraints(self, constraints):
-        """Adds more constraints to the sudoku puzzle.
+    def get_variables(self):
+        return self.variables
 
-        The constraints should be paris of variables, which should be different."""
+    def get_constraints(self):
+        return self.constraints
 
-        for constraint in constraints:
-            self.constraints.add(constraint)
-
-    def constraint_propagation(self):
-        """Performs constraint propagation on the sudoku"""
-    
-        #TODO: for optimization maybe loop through variables
-        #and make all constraints including them arc consistent.
-        #TODO: after that order variables by domain sizes. Don't forget to update!!!
-        for constraint in self.constraints:
-            var1, var2 = constraint
-            if var1 == var2:
-                print 'WTF!!!'
-            domain_var1 = self.variables[var1]
-            domain_var2 = self.variables[var2]
-            if not self.arc_consistency(domain_var1, domain_var2):
-                return False
-        return True
-    def arc_consistency(self, domain1, domain2):
-        """Performs arc consistency on the two domains assuming != constraint.
-
-        Removes from the domains the values that do not have support in the other domain."""
-        
-        if len(domain1) == 1:
-            for value in domain1:
-                domain2.discard(value)
-                if len(domain2)==0:
-                    return False
-        if len(domain2) == 1:
-            for value in domain2:
-                domain1.discard(value)
-                if len(domain1)==0:
-                    return False
-        return True
-                
-    def is_solved(self):
-        """Checks if the sudoku is solved.
-
-        A sudoku is solved if every variable is assigned exactly 1 value."""
-
-        for variable, domain in self.variables.iteritems():            
-            if len(domain) != 1:
-                return False
-
-        return True
-
-    def is_unsolvable(self):
-        """Check if the sudoku became unsolvable.
-
-        Check if any of the variables is left with an empty domain."""
-        
-        for variable, domain in self.variables.iteritems():
-            if not domain:#TODO: check if this really means if the len(domain) == 0
-                return True
-        
-        return False
-
-    def get_solution(self):
+    def translate_solution(self, variables):
         """Returns the solution to the sudoku as a printable string.
 
         Expects that the sudoku is solved."""
 
         solution = ''
-        sorted_variables = sorted(self.variables.items(), key = lambda el: el[0])
+        sorted_variables = sorted(variables.items(), key = lambda el: el[0])
         for variable, domain in sorted_variables:
             value = domain.pop()
             domain.add(value)
@@ -188,60 +130,4 @@ class Sudoku:
 
         return solution
 
-    def display_state(self):
-        """Prints a current state of the sudoku."""
-
-        solution = ''
-        sorted_variables = sorted(self.variables.items(), key = lambda el: el[0])
-        for variable, domain in sorted_variables:
-            solution += str(domain) + '\t'
-            column = variable % self.size
-            if column == self.size - 1:
-                solution += '\n\n'
-
-        return solution
-
-    def get_variable_domain(self, variable):
-        """Return the domain of the variable.
-
-        Given a variable return the set of its allowed values."""
-
-        return self.variables[variable]
-
-    def get_unassigned_variables(self):
-        """Return a list of the unassigned variables.
-
-        Return a list of the the variables,
-        which have not yet been assigned a value."""
-
-        unassigned_variables = []
-        for variable, domain in self.variables.iteritems():
-            if len(domain) != 1:
-                unassigned_variables.append(variable)
-
-        return unassigned_variables
-
-    def set_variable(self, variable, value):
-        """Set the variable 'variable' to have value 'value'.
-
-        Restrict the domain of the variable 'variable' to be
-        the set with one element 'value'."""
-
-        self.variables[variable] = {value}
-        
-    def copy(self):
-        """Copies the puzzle.
-
-        Returns a copy of the puzzle. Changing the assigned values and
-        the possible values in the coppy will not affect the original puzzle,
-        thus the original and the copy are different from each other."""
-
-        sudoku_copy = Sudoku()
-
-        sudoku_copy.domain = self.domain
-        sudoku_copy.size = self.size
-        sudoku_copy.variables = copy.deepcopy(self.variables)
-        sudoku_copy.constraints = copy.deepcopy(self.constraints)
-
-        return sudoku_copy
 
