@@ -74,7 +74,7 @@ def solve_CSP(problem):
 #Different puzzles follow.
 def main(argv):
     #print argv
-    numberofsudokus = 10
+    numberofsudokus = 1000
     sudokus = open(argv[1], 'r')
     solutions = open(argv[2], 'w')
     nsudokus = 0
