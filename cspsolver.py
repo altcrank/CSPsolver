@@ -51,7 +51,6 @@ def solve_CSP(problem):
     
     if not problem.constraint_propagation():
         return False, 'No solution.'
-
     #print 'after CP:'
     #print puzzle.display_state()
 
@@ -60,6 +59,7 @@ def solve_CSP(problem):
 
     variable = problem.get_variable_for_splitting()
     domain = problem.get_variable_domain(variable)
+
     for value in domain:
         new_problem = problem.copy()
         splits += 1
@@ -72,6 +72,18 @@ def solve_CSP(problem):
 
 
 #Different puzzles follow.
-sudoku1 = Sudoku('4...3.......6..8..........1....5..9..8....6...7.2........1.27..5.3....4.9........')
-
-solve_sudoku(sudoku1)
+def main(argv):
+    #print argv
+    sudokus = [line.rstrip('\n') for line in open(argv[1])]
+    #sudokus = [line.rstrip('\n') for line in open('1000sudokus.txt')]
+    for i in range(3):
+        solve_sudoku(Sudoku(sudokus[i]))
+    
+if __name__ == '__main__':
+    main(sys.argv)
+#pik = Sudoku(lines[0])
+#solve_sudoku(pik)
+#for line in range(0,len(sudokustring),len(sudokustring)/1000):
+#    print sudokustring[line:len(sudokustring)/1000]
+#print len(sudokustring)/1000
+#solve_sudoku(sudoku1)
