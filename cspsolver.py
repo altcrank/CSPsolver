@@ -33,10 +33,10 @@ def solve_sudoku(puzzle):
     
     if not has_solution:
         print 'No solution.\n Splits performed: ' + str(splits)
+        return False, 'No solution.'
     else:
-        print puzzle.translate_solution(solution) + '\n Splits performed: ' + str(splits)
+        return True, puzzle.translate_solution(solution)
         
-
 def solve_CSP(problem):
     """Solves a CSP problem using a constraint satisfaction algorithm.
 
@@ -74,12 +74,18 @@ def solve_CSP(problem):
 #Different puzzles follow.
 def main(argv):
     #print argv
-    sudokus = [line.rstrip('\n') for line in open(argv[1])]
-    #sudokus = [line.rstrip('\n') for line in open('1000sudokus.txt')]
-    for i in range(3):
-        solve_sudoku(Sudoku(sudokus[i]))
-    
+    sudokus = open(argv[1], 'r')
+    solutions = open(argv[2], 'w')
+    for line in sudokus:
+        sudoku = line.rstrip('\n')
+        solved, solutionString = solve_sudoku(Sudoku(sudoku))
+        solutions.write(solutionString)    
+    sudokus.close()
+    solutions.close()    
 if __name__ == '__main__':
+    if len(sys.argv) != 3:
+        print('usage: python cspsolver.py inputfile.txt outputfile.txt')
+        sys.exit()
     main(sys.argv)
 #pik = Sudoku(lines[0])
 #solve_sudoku(pik)
