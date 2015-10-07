@@ -74,12 +74,18 @@ def solve_CSP(problem):
 #Different puzzles follow.
 def main(argv):
     #print argv
+    numberofsudokus = 10
     sudokus = open(argv[1], 'r')
     solutions = open(argv[2], 'w')
+    nsudokus = 0
     for line in sudokus:
+        if nsudokus == numberofsudokus:
+            break
         sudoku = line.rstrip('\n')
         solved, solutionString = solve_sudoku(Sudoku(sudoku))
-        solutions.write(solutionString)    
+        solutions.write(solutionString)
+        nsudokus +=1
+        
     sudokus.close()
     solutions.close()    
 if __name__ == '__main__':
