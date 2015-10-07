@@ -78,25 +78,18 @@ class CSPProblem:
 
         Removes from the domains the values that do not have support in the other domain."""
 
-        smaller = var1
-        bigger = var2
-        if self.variable_domain_sizes[var1] > self.variable_domain_sizes[var2]:
-            smaller = var2
-            bigger = var1
-
         delete_constraint = False
 
-        if self.variable_domain_sizes[smaller] > 1:
+        if self.variable_domain_sizes[var1] > 1 and self.variable_domain_sizes[var2] > 1:
             return True, True, delete_constraint
 
         delete_constraint = True
-        if not self.half_arc_consistency(smaller, bigger):
+
+        if not self.half_arc_consistency(var1, var2):
             return False, False, delete_constraint
 
-        if not self.half_arc_consistency(bigger, smaller):
+        if not self.half_arc_consistency(var2, var1):
             return False, False, delete_constraint
-
-        delete_constraint = delete_constraint or applied_constraint
 
         return True, False, delete_constraint
 
@@ -118,12 +111,6 @@ class CSPProblem:
 
         A CSP is solved if every variable is assigned exactly 1 value."""
 
-        for variable, domain in self.variable_domains.iteritems():
-            if len(domain) != 1:
-                return False
-
-        return True
-    
         for domain_size in self.variable_domain_sizes:            
             if domain_size != 1:
                 return False
@@ -173,9 +160,7 @@ class CSPProblem:
         best_variables = set()
         smallest_domain_size = sys.maxint
 
-        #for var, domain_size in enumerate(self.variable_domain_sizes):
-        for var, domain in self.variable_domains.iteritems():
-            domain_size = len(domain)
+        for var, domain_size in enumerate(self.variable_domain_sizes):
             if domain_size <= 1:
                 continue
     
