@@ -144,12 +144,33 @@ class CSPProblem:
 
         return state
 
-    def get_variable_domain(self, variable):
+    def get_variable_domain(self, variable, sort_values):
         """Return the domain of the variable.
 
         Given a variable return the set of its allowed values."""
 
-        return self.variable_domains[variable]
+        if not sort_values:
+            return self.variable_domains[variable]
+
+        values = list(self.variable_domains[variable])
+        related_variables = []
+        for constraint in self.constraints:
+            var1, var2 = constraint
+            if variable == var1:
+                related_variables.append(var2)
+            if variable == var2:
+                related_variables.append(var1)
+
+        values_tightness = []
+        for value in values:
+            tightness = 0
+            for var in related_variables:
+                if value in self.variable_domains[var]:
+                    tightness += 1
+            values_tightness.append((tightness, value))
+
+        values_tightness.sort(reverse=True)#default = smallest tightness first
+        return zip(*values_tightness)[1]
 
 
     def get_variable_for_splitting(self, use_mrv, use_mcv):

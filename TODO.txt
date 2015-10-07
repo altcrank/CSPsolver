@@ -6,8 +6,8 @@ Optional:
 3. Make it iterative, not recursive.
 
 Actual Constraint Satisfaction stuff:
-1. Tie breaker for Minimum Remaining Values (mrv) Heuristic. Pick variable used in the most constraints.
-2. Value picking heuristic: pick the value with highest tightness (leads to a more productive constraint propagation)
-DONE 3. Delete constraints that are already satisfied.
+DONE: 1. Tie breaker for Minimum Remaining Values (mrv) Heuristic. Pick variable used in the most constraints. (changed it to the one used in the least constraints)
+DONE: 2. Value picking heuristic: pick the value with highest tightness (leads to a more productive constraint propagation)
+DONE: 3. Delete constraints that are already satisfied.
 Optional:
 4. Backjumping. (Keep a dependancy graph, that would tell us exactly wich split along the branch led to a conflict and backjump straight to that split, instead of backtracking just one level up)
