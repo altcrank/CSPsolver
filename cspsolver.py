@@ -74,12 +74,14 @@ def solve_CSP(problem):
 #Different puzzles follow.
 def main(argv):
     #print argv
-    numberofsudokus = 1000
     sudokus = open(argv[1], 'r')
     solutions = open(argv[2], 'w')
+    number_of_sudokus = 0
+    if len(argv) > 3:
+        number_of_sudokus = int(argv[3])
     nsudokus = 0
     for line in sudokus:
-        if nsudokus == numberofsudokus:
+        if number_of_sudokus != 0 and nsudokus == number_of_sudokus:
             break
         sudoku = line.rstrip('\n')
         solved, solutionString = solve_sudoku(Sudoku(sudoku))
@@ -89,7 +91,7 @@ def main(argv):
     sudokus.close()
     solutions.close()    
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
+    if len(sys.argv) < 3:
         print('usage: python cspsolver.py inputfile.txt outputfile.txt')
         sys.exit()
     main(sys.argv)
