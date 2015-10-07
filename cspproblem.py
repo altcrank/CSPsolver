@@ -7,7 +7,6 @@
 
 import copy
 import sys
-import operator
 
 class CSPProblem:
     """A CSP problem.
@@ -43,13 +42,23 @@ class CSPProblem:
     def constraint_key(self, constraint):
         return min(self.variable_domain_sizes[constraint[0]], self.variable_domain_sizes[constraint[1]])
 
-    def constraint_propagation(self):
+    def constraint_propagation(self, optimized):
         """Performs constraint propagation on the CSP problem"""
     
-        #TODO: for optimization maybe loop through variables
-        #and make all constraints including them arc consistent.
-        #TODO: after that order variables by domain sizes. Don't forget to update!!!
+        if optimized:
+            return self.optimized_constraint_propagation()
 
+        return self.general_constraint_propagation()
+    
+    def general_constraint_propagation(self):
+        for constraint in self.constraints:
+            var1, var2 = constraint
+            if not self.arc_consistency(var1, var2)[0]:
+                return False
+
+        return True
+
+    def optimized_constraint_propagation(self):
         #order constriants by their variables' domain sizes
         self.constraints.sort(key=self.constraint_key)
         
@@ -143,24 +152,25 @@ class CSPProblem:
         return self.variable_domains[variable]
 
 
-    def get_variable_for_splitting(self):
-        variables = self.get_mrv_vars()
+    def get_variable_for_splitting(self, use_mrv, use_mcv):
+        variables = {}
+        if use_mrv:
+            variables = self.get_mrv_vars()
 
-        if not variables:
-            raise Exception('Get Variable for Splitting', 'CSP does not have unset variables!')
-        
-		if len(variables) == 1:
+        if len(variables) == 1:
 			return variables.pop()
-			
-		nconstraints = dict()
-		for var in variables:
-			nconstraints[var] = 0
-		for c in self.constraints:
-			if c[0] in variables:
-				nconstraints[c[0]] += 1
-			if c[1] in variables:
-				nconstraints[c[1]] += 1
-		return max(nconstraints.iteritems(), key=operator.itemgetter(1))[0]
+		
+        if use_mcv:
+            return self.get_mcv_vars(variables)	
+
+        if len(variables) > 0:
+            return variables.pop()
+
+        for variable, domain_size in enumerate(self.variable_domain_sizes):
+            if domain_size > 1:
+                return variable
+        
+        return 0
 
     def get_mrv_vars(self):
         """A Minimum Remaining Values Heuristic function.
@@ -187,6 +197,23 @@ class CSPProblem:
 
         return best_variables
 
+    def get_mcv_vars(self, variables):
+        if not variables:
+            variables = self.get_unassigned_variables()
+
+        nconstraints = dict()
+        for var in variables:
+            nconstraints[var] = 0
+
+        for constraint in self.constraints:
+            var1, var2 = constraint
+            if var1 in variables:
+                nconstraints[var1] += 1
+            if var2 in variables:
+                nconstraints[var2] += 1
+
+        return min(nconstraints.iteritems(), key=lambda k_v_pair: k_v_pair[1])[0]
+
     #TODO: This is unused and left because it might turn out needed later.
     #Try not to use it though.
     def get_unassigned_variables(self):
@@ -196,10 +223,7 @@ class CSPProblem:
         which have not yet been assigned a value."""
 
         unassigned_variables = []
-        #for variable, domain_size in self.variable_domain_sizes:
-        for variable, domain in self.variable_domains.iteritems():
-            domain_size = len(domain)
-
+        for variable, domain_size in enumerate(self.variable_domain_sizes):
             if domain_size != 1:
                 unassigned_variables.append(variable)
 

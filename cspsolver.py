@@ -14,6 +14,8 @@ splits = 0
 and the constraint_satisfaction function to count the number of splits
 done while solving the CSP problem."""
 
+total_splits = 0
+
 
 def solve_sudoku(puzzle):
     """Solves a given sudoku puzzle.
@@ -46,18 +48,13 @@ def solve_CSP(problem):
 
     global splits
 
-    #print 'before CP:'
-    #print puzzle.display_state()
-    
-    if not problem.constraint_propagation():
+    if not problem.constraint_propagation(True):#optimized?
         return False, 'No solution.'
-    #print 'after CP:'
-    #print puzzle.display_state()
-
+    
     if problem.is_solved():
         return True, problem.get_solution()
 
-    variable = problem.get_variable_for_splitting()
+    variable = problem.get_variable_for_splitting(True, True)#MRV?, MCV?
     domain = problem.get_variable_domain(variable)
 
     for value in domain:
@@ -73,12 +70,15 @@ def solve_CSP(problem):
 
 #Different puzzles follow.
 def main(argv):
-    #print argv
+    global total_splits
+    total_splits = 0
     sudokus = open(argv[1], 'r')
     solutions = open(argv[2], 'w')
     number_of_sudokus = 0
+
     if len(argv) > 3:
         number_of_sudokus = int(argv[3])
+
     nsudokus = 0
     for line in sudokus:
         if number_of_sudokus != 0 and nsudokus == number_of_sudokus:
@@ -86,18 +86,16 @@ def main(argv):
         sudoku = line.rstrip('\n')
         solved, solutionString = solve_sudoku(Sudoku(sudoku))
         solutions.write(solutionString+ '\n')
+        total_splits += splits
         nsudokus +=1
-        
+
+    print 'Total number of splits done: ' + str(total_splits)
     sudokus.close()
-    solutions.close()    
+    solutions.close()
+
 if __name__ == '__main__':
     if len(sys.argv) < 3:
         print('usage: python cspsolver.py inputfile.txt outputfile.txt')
         sys.exit()
+
     main(sys.argv)
-#pik = Sudoku(lines[0])
-#solve_sudoku(pik)
-#for line in range(0,len(sudokustring),len(sudokustring)/1000):
-#    print sudokustring[line:len(sudokustring)/1000]
-#print len(sudokustring)/1000
-#solve_sudoku(sudoku1)
