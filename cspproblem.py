@@ -7,6 +7,7 @@
 
 import copy
 import sys
+import operator
 
 class CSPProblem:
     """A CSP problem.
@@ -148,7 +149,18 @@ class CSPProblem:
         if not variables:
             raise Exception('Get Variable for Splitting', 'CSP does not have unset variables!')
         
-        return variables.pop()
+		if len(variables) == 1:
+			return variables.pop()
+			
+		nconstraints = dict()
+		for var in variables:
+			nconstraints[var] = 0
+		for c in self.constraints:
+			if c[0] in variables:
+				nconstraints[c[0]] += 1
+			if c[1] in variables:
+				nconstraints[c[1]] += 1
+		return max(nconstraints.iteritems(), key=operator.itemgetter(1))[0]
 
     def get_mrv_vars(self):
         """A Minimum Remaining Values Heuristic function.
