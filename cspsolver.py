@@ -42,16 +42,15 @@ def constraint_satisfaction(puzzle):
     #print 'before CP:'
     #print puzzle.display_state()
     
-    puzzle.constraint_propagation()
-
+    if not puzzle.constraint_propagation():
+        return False, 'No solution.'
+    
+    #puzzle.constraint_propagation()
     #print 'after CP:'
     #print puzzle.display_state()
 
     if puzzle.is_solved():
         return True, puzzle.get_solution()
-
-    if puzzle.is_unsolvable():
-        return False, 'No solution.'
 
     variable = mrv_var(puzzle)
     domain = puzzle.get_variable_domain(variable)
@@ -95,6 +94,18 @@ def mrv_var(puzzle):
 
 
 #Different puzzles follow.
-sudoku1 = Sudoku('4...3.......6..8..........1....5..9..8....6...7.2........1.27..5.3....4.9........')
-
-solve_sudoku(sudoku1)
+def main(argv):
+    #print argv
+    sudokus = [line.rstrip('\n') for line in open(argv[1])]
+    #sudokus = [line.rstrip('\n') for line in open('1000sudokus.txt')]
+    for i in range(3):
+        solve_sudoku(Sudoku(sudokus[i]))
+    
+if __name__ == '__main__':
+    main(sys.argv)
+#pik = Sudoku(lines[0])
+#solve_sudoku(pik)
+#for line in range(0,len(sudokustring),len(sudokustring)/1000):
+#    print sudokustring[line:len(sudokustring)/1000]
+#print len(sudokustring)/1000
+#solve_sudoku(sudoku1)
