@@ -39,24 +39,37 @@ class CSPProblem:
     def add_constraints(self, constraints):
         self.constraints.extend(copy.deepcopy(constraints))
 
+    def constraint_key(self, constraint):
+        return min(self.variable_domain_sizes[constraint[0]], self.variable_domain_sizes[constraint[1]])
+
     def constraint_propagation(self):
         """Performs constraint propagation on the CSP problem"""
     
         #TODO: for optimization maybe loop through variables
         #and make all constraints including them arc consistent.
         #TODO: after that order variables by domain sizes. Don't forget to update!!!
-        
-        #order constriants by their variables' domain sizes
-        self.constraints.sort(key=lambda constraint: min(self.variable_domain_sizes[constraint[0]], self.variable_domain_sizes[constraint[1]]))
 
+        #order constriants by their variables' domain sizes
+        self.constraints.sort(key=self.constraint_key)
+        
         #do constraint propagation
-        for constraint in self.constraints:
-            var1, var2 = constraint
-            consistent, stop = self.arc_consistency(var1, var2)
-            if not consistent:
-                return False
-            if stop:
-                break
+        while self.constraints and self.constraint_key(self.constraints[0]) == 1:
+            i = 0
+            constraints_count = len(self.constraints)
+            while i < constraints_count: 
+                var1, var2 = self.constraints[i]
+                consistent, stop, delete = self.arc_consistency(var1, var2)
+                if not consistent:
+                    return False
+                if delete:
+                    self.constraints.pop(i)
+                    constraints_count -= 1
+                    i -= 1
+                if stop:
+                    break
+                i += 1
+
+            self.constraints.sort(key=self.constraint_key)
 
         return True
 
@@ -71,16 +84,21 @@ class CSPProblem:
             smaller = var2
             bigger = var1
 
-        #if self.variable_domain_sizes[smaller] > 1:
-        #    return True, True
+        delete_constraint = False
 
+        if self.variable_domain_sizes[smaller] > 1:
+            return True, True, delete_constraint
+
+        delete_constraint = True
         if not self.half_arc_consistency(smaller, bigger):
-            return False, False
+            return False, False, delete_constraint
 
         if not self.half_arc_consistency(bigger, smaller):
-            return False, False
+            return False, False, delete_constraint
 
-        return True, False
+        delete_constraint = delete_constraint or applied_constraint
+
+        return True, False, delete_constraint
 
 
     def half_arc_consistency(self, var1, var2):
