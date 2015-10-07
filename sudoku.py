@@ -129,20 +129,25 @@ class Sudoku:
                 print 'WTF!!!'
             domain_var1 = self.variables[var1]
             domain_var2 = self.variables[var2]
-            self.arc_consistency(domain_var1, domain_var2)
-
+            if not self.arc_consistency(domain_var1, domain_var2):
+                return False
+        return True
     def arc_consistency(self, domain1, domain2):
         """Performs arc consistency on the two domains assuming != constraint.
 
         Removes from the domains the values that do not have support in the other domain."""
-
+        
         if len(domain1) == 1:
             for value in domain1:
                 domain2.discard(value)
-                
+                if len(domain2)==0:
+                    return False
         if len(domain2) == 1:
             for value in domain2:
                 domain1.discard(value)
+                if len(domain1)==0:
+                    return False
+        return True
                 
     def is_solved(self):
         """Checks if the sudoku is solved.
@@ -159,11 +164,11 @@ class Sudoku:
         """Check if the sudoku became unsolvable.
 
         Check if any of the variables is left with an empty domain."""
-
+        
         for variable, domain in self.variables.iteritems():
             if not domain:#TODO: check if this really means if the len(domain) == 0
                 return True
-
+        
         return False
 
     def get_solution(self):
