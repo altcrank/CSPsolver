@@ -123,10 +123,8 @@ class Sudoku:
         for variable, domain in sorted_variables:
             value = domain.pop()
             domain.add(value)
-            solution += str(value) + ' '
-            column = variable % self.size
-            if column == self.size - 1:
-                solution += '\n'
+            solution += str(value)
+            
 
         return solution
 

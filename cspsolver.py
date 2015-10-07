@@ -83,7 +83,7 @@ def main(argv):
             break
         sudoku = line.rstrip('\n')
         solved, solutionString = solve_sudoku(Sudoku(sudoku))
-        solutions.write(solutionString)
+        solutions.write(solutionString+ '\n')
         nsudokus +=1
         
     sudokus.close()
