@@ -60,8 +60,7 @@ class CSPProblem:
     
     def general_constraint_propagation(self):
         for constraint in self.constraints:
-            var1, var2 = constraint
-            if not self.arc_consistency(var1, var2)[0]:
+            if not self.arc_consistency(constraint[0], constraint[1])[0]:
                 return False
 
         return True
@@ -147,13 +146,13 @@ class CSPProblem:
             return self.variable_domains[variable]
 
         values = list(self.variable_domains[variable])
-        related_variables = []
+        related_variables = set()
         for constraint in self.constraints:
-            var1, var2 = constraint
-            if variable == var1:
-                related_variables.append(var2)
-            if variable == var2:
-                related_variables.append(var1)
+            variables = constraint[1]
+            if variable in variables:
+                for var in variables:
+                    if variable != var:
+                        related_variables.add(var)
 
         values_tightness = []
         for value in values:

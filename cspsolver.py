@@ -54,8 +54,8 @@ def solve_CSP(problem):
     if problem.is_solved():
         return True, problem.get_solution()
 
-    variable = problem.get_variable_for_splitting(True, True)#MRV?, MCV?
-    domain = problem.get_variable_domain(variable, False)#SVH?
+    variable = problem.get_variable_for_splitting(True, False)#MRV?, MCV?
+    domain = problem.get_variable_domain(variable, True)#SVH?
 
     for value in domain:
         new_problem = problem.copy()
