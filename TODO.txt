@@ -12,4 +12,4 @@ DONE: 3. Delete constraints that are already satisfied.
 Optional:
 4. Backjumping. (Keep a dependancy graph, that would tell us exactly wich split along the branch led to a conflict and backjump straight to that split, instead of backtracking just one level up)
 
-TODO: value - the one that is in the (most) smallest related domains
+DONE: value - the one leading to smallest domain of related variables.

@@ -38,6 +38,12 @@ class CSPProblem:
 
     def set_constraints(self, constraints):
         self.constraints = copy.deepcopy(constraints)
+        self.only_different = True
+        different = cs.Different()
+        for constraint in self.constraints:
+            if not constraint[0] == different:
+                self.only_different = False
+
 
     def add_constraints(self, constraints):
         self.constraints.extend(copy.deepcopy(constraints))
@@ -48,12 +54,7 @@ class CSPProblem:
     def constraint_propagation(self, optimized):
         """Performs constraint propagation on the CSP problem"""
 
-        only_different = True
-        for constraint in self.constraints:
-            if not constraint[0] == self.diff:
-                only_different = False
-
-        if optimized and only_different:
+        if optimized and self.only_different:
             return self.optimized_constraint_propagation()
 
         return self.general_constraint_propagation()
@@ -142,9 +143,14 @@ class CSPProblem:
 
         Given a variable return the set of its allowed values."""
 
-        if not sort_values:
+        if sort_values == 0:
             return self.variable_domains[variable]
+        elif sort_values == 1:
+            return self.sort_values_by_tightness(variable)
+        else:
+            return self.sort_values_by_related_domain_sizes(variable)
 
+    def sort_values_by_tightness(self, variable):
         values = list(self.variable_domains[variable])
         related_variables = set()
         for constraint in self.constraints:
@@ -165,6 +171,30 @@ class CSPProblem:
         values_tightness.sort(reverse=True)#default = smallest tightness first
         return zip(*values_tightness)[1]
 
+    def sort_values_by_related_domain_sizes(self, variable):
+        values = list(self.variable_domains[variable])
+        related_variables = set()
+        for constraint in self.constraints:
+            variables = constraint[1]
+            if variable in variables:
+                for var in variables:
+                    if variable != var:
+                        related_variables.add(var)
+
+        related_domain_sizes = []
+        for value in values:
+            smallest_domain_size = sys.maxint
+            for var in related_variables:
+                domain = self.variable_domains[var]
+                domain_size = len(domain)
+                if value in domain:
+                    domain_size -= 1
+                if domain_size < smallest_domain_size:
+                    smallest_domain_size = domain_size
+            related_domain_sizes.append((domain_size, value))
+
+        related_domain_sizes.sort()#default = smallest tightness first
+        return zip(*related_domain_sizes)[1]
 
     def get_variable_for_splitting(self, use_mrv, use_mcv):
         variables = {}
@@ -261,6 +291,7 @@ class CSPProblem:
         csp_copy.variable_domains = copy.deepcopy(self.variable_domains)
         csp_copy.variable_domain_sizes = copy.deepcopy(self.variable_domain_sizes)
         csp_copy.constraints = copy.deepcopy(self.constraints)
+        csp_copy.only_different = self.only_different
 
         return csp_copy
 
