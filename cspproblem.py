@@ -7,6 +7,7 @@
 
 import copy
 import sys
+import constraints as cs
 
 class CSPProblem:
     """A CSP problem.
@@ -27,6 +28,8 @@ class CSPProblem:
     constraints = []
     """The constraints describing the CSP problem."""
 
+    diff = cs.Different()
+
     def set_variables(self, variable_domains):
         self.variable_domains = copy.deepcopy(variable_domains)
         self.variable_domain_sizes = list(range(len(variable_domains)))
@@ -44,8 +47,13 @@ class CSPProblem:
 
     def constraint_propagation(self, optimized):
         """Performs constraint propagation on the CSP problem"""
-    
-        if optimized:
+
+        only_different = True
+        for constraint in self.constraints:
+            if not constraint[0] == self.diff:
+                only_different = False
+
+        if optimized and only_different:
             return self.optimized_constraint_propagation()
 
         return self.general_constraint_propagation()
