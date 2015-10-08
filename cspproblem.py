@@ -40,7 +40,7 @@ class CSPProblem:
         self.constraints.extend(copy.deepcopy(constraints))
 
     def constraint_key(self, constraint):
-        return min(self.variable_domain_sizes[constraint[0]], self.variable_domain_sizes[constraint[1]])
+        return min(map(lambda var: self.variable_domain_sizes[var], constraint[1]))
 
     def constraint_propagation(self, optimized):
         """Performs constraint propagation on the CSP problem"""
@@ -67,8 +67,8 @@ class CSPProblem:
             i = 0
             constraints_count = len(self.constraints)
             while i < constraints_count: 
-                var1, var2 = self.constraints[i]
-                consistent, stop, delete = self.arc_consistency(var1, var2)
+                constraint_type, variables = self.constraints[i]
+                consistent, stop, delete = self.arc_consistency(constraint_type, variables)
                 if not consistent:
                     return False
                 if delete:
@@ -83,38 +83,24 @@ class CSPProblem:
 
         return True
 
-    def arc_consistency(self, var1, var2):
+    def arc_consistency(self, constraint_type, variables):
         """Performs arc consistency on the two domains assuming != constraint.
 
         Removes from the domains the values that do not have support in the other domain."""
 
-        delete_constraint = False
+        domain_sizes = map(lambda var: self.variable_domain_sizes[var], variables)
+        if not 1 in domain_sizes:
+            return True, True, False
 
-        if self.variable_domain_sizes[var1] > 1 and self.variable_domain_sizes[var2] > 1:
-            return True, True, delete_constraint
+        domains = map(lambda var: self.variable_domains[var], variables)
+        domains = constraint_type(domains)
+        for i, domain in enumerate(domains):
+            self.variable_domain_sizes[variables[i]] = len(domain)
+            self.variable_domains[variables[i]] = domain
 
-        delete_constraint = True
-
-        if not self.half_arc_consistency(var1, var2):
-            return False, False, delete_constraint
-
-        if not self.half_arc_consistency(var2, var1):
-            return False, False, delete_constraint
-
-        return True, False, delete_constraint
-
-
-    def half_arc_consistency(self, var1, var2):
-        if self.variable_domain_sizes[var1] == 1:
-            domain1 = self.variable_domains[var1]
-            domain2 = self.variable_domains[var2]
-            for value in domain1:
-                if value in domain2:
-                    domain2.remove(value)
-                    self.variable_domain_sizes[var2] -= 1
-                    if self.variable_domain_sizes[var2] == 0:
-                        return False
-        return True
+        domain_sizes = map(lambda var: self.variable_domain_sizes[var], variables)
+        consistent = not 0 in domain_sizes
+        return consistent, False, True
                 
     def is_solved(self):
         """Checks if the CSP is solved.
@@ -227,11 +213,9 @@ class CSPProblem:
             nconstraints[var] = 0
 
         for constraint in self.constraints:
-            var1, var2 = constraint
-            if var1 in variables:
-                nconstraints[var1] += 1
-            if var2 in variables:
-                nconstraints[var2] += 1
+            for var in constraint[1]:
+                if var in variables:
+                    nconstraints[var] += 1
 
         return min(nconstraints.iteritems(), key=lambda k_v_pair: k_v_pair[1])[0]
 

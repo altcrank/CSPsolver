@@ -6,6 +6,7 @@
 #           Kasper Bouwens      kas_bouwens@hotmail.com
 
 import math
+from constraints import Different
 
 class Sudoku:
     """A Sudoku puzzle.
@@ -26,6 +27,8 @@ class Sudoku:
 
     constraints = []
     """The constraints describing the sudoku rules."""
+
+    constraint_type = Different()
 
     def __init__(self, sudoku_string = ''):
         """A constructor for a sudoku puzzle
@@ -100,10 +103,8 @@ class Sudoku:
         signifying that they should have different values.
         For uniqueness the pair alwas has the smalles variable as first."""
 
-        if var1 < var2:
-            constraint = (var1, var2)
-        else:
-            constraint = (var2, var1)
+        variables = sorted([var1, var2])
+        constraint = (self.constraint_type, variables)
         if not constraint in self.constraints:
             self.constraints.append(constraint)
 
