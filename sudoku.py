@@ -11,8 +11,7 @@ from constraints import Different
 class Sudoku:
     """A Sudoku puzzle.
     
-    A class representing an instance of a Sudoku puzzle
-    and giving various attributes for manipulating that puzzle"""
+    A class translating a Sudoku puzzle to a CSP problem."""
 
     unset_values = {'0', '.'}
     """The characters that can be used for unset variable."""
