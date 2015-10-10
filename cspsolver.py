@@ -7,7 +7,7 @@
 
 import sys
 from sudoku import Sudoku
-from cspproblem import CSPProblem
+from csproblem import CSProblem
 
 splits = 0
 """A global variable used by the solve_CSP function,
@@ -17,27 +17,24 @@ done while solving the CSP problem."""
 total_splits = 0
 
 
-def solve_sudoku(puzzle):
+def solve_sudoku(sudoku_translator, sudoku_string):
     """Solves a given sudoku puzzle.
 
     Given a sudoku puzzle it will try to solve it using costraint satisfaction.
-    If it succeeds it will print the solution.
-    Otherwise prints 'No solution'."""
+    If it succeeds it will return the solution.
+    Otherwise returns 'No solution'."""
     
     global splits
     splits = 0
     
-    csp = CSPProblem()
-    csp.set_variables(puzzle.get_variables())
-    csp.set_constraints(puzzle.get_constraints())
+    csp = sudoku_translator.translate_sudoku_to_CSP(sudoku_string)
     
     (has_solution, solution) = solve_CSP(csp)
     
     if not has_solution:
-        print 'No solution.\n Splits performed: ' + str(splits)
         return False, 'No solution.'
     else:
-        return True, puzzle.translate_solution(solution)
+        return True, sudoku_translator.translate_solution(solution)
         
 def solve_CSP(problem):
     """Solves a CSP problem using a constraint satisfaction algorithm.
@@ -80,11 +77,12 @@ def main(argv):
         number_of_sudokus = int(argv[3])
 
     nsudokus = 0
+    sudoku_translator = Sudoku()
     for line in sudokus:
         if number_of_sudokus != 0 and nsudokus == number_of_sudokus:
             break
         sudoku = line.rstrip('\n')
-        solved, solutionString = solve_sudoku(Sudoku(sudoku))
+        solved, solutionString = solve_sudoku(sudoku_translator, sudoku)
         solutions.write(solutionString+ '\n')
         solutions.flush()
         total_splits += splits

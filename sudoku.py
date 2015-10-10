@@ -7,6 +7,7 @@
 
 import math
 from constraints import Different
+from csproblem import CSProblem
 
 class Sudoku:
     """A Sudoku puzzle.
@@ -16,41 +17,44 @@ class Sudoku:
     unset_values = {'0', '.'}
     """The characters that can be used for unset variable."""
 
-    domain = set()
-    """The initial domain for unset variables of a sudoku puzzle."""
-
-    size = 0
-
-    variables = dict()
-    """The initial domain for unset variables of a sudoku puzzle."""
-
-    constraints = []
-    """The constraints describing the sudoku rules."""
-
     constraint_type = Different()
 
-    def __init__(self, sudoku_string = ''):
-        """A constructor for a sudoku puzzle
+    def translate_sudoku_to_CSP(self, sudoku_string):
+        """Translates a sudoku string to CSProblem
 
-        Given a string of length NxN it saves the size N of the puzzle,
+        Given a string of length NxN this function creates a CSProblem and:
         initializes the variables and their domains,
-        initializes the constraints,
-        initializes the goal."""
-        
+        initializes the constraints.
+        In case the string is not of the right length to be a sudoku string
+        it throws an exception."""
+
+        context = 'translate_sudoku_to_CSP'
+        message = 'Sudoku size must be a square number'
         size_squared = len(sudoku_string)
         size = math.sqrt(size_squared)
-        self.size = int(size)
-        if self.size != size:
-            raise Exception('Sudoku', 'Sudoku size must be a square number')
+        if size != int(size):
+            raise Exception(context, message)
 
-        for value in range(1, self.size+1):
-            self.domain.add(value)
+        size = int(size)
+        subgrid_size = math.sqrt(size)
+        if subgrid_size != int(subgrid_size):
+            raise Execption(context, message)
 
-        self.initialize_variables(sudoku_string)
+        domain = set()
+        for value in range(1, size+1):
+            domain.add(value)
+
+        variables = self.initialize_variables(sudoku_string, domain)
         
-        self.generate_sudoku_rules_constraints()
+        constraints = self.generate_sudoku_rules_constraints(size)
 
-    def initialize_variables(self, sudoku_string):
+        csp = CSProblem()
+        csp.set_variables(variables)
+        csp.set_constraints(constraints)
+
+        return csp
+
+    def initialize_variables(self, sudoku_string, domain):
         """Initializes the variables of a sudoku puzzle
 
         Given a string of length Size x Size, represeting a sudoku,
@@ -59,43 +63,49 @@ class Sudoku:
         For all variables with given values it initializes the variable with
         a domain of the given value."""
         
+        variables = dict()
         #NOTE: variables are 0-based
         for variable, value in enumerate(sudoku_string):
             if value not in self.unset_values:
                 int_value = int(value)
-                self.variables[variable] = {int_value}
+                variables[variable] = {int_value}
             else:
-                self.variables[variable] = self.domain.copy()
+                variables[variable] = domain.copy()
 
-    def generate_sudoku_rules_constraints(self):
+        return variables
+
+    def generate_sudoku_rules_constraints(self, size):
         """Generate the constraints defining the sudoku rules.
 
         Generates a set of pairs of variables.
         Every pair of variables will be interpreted as a constraint
         that the two variables should have different values."""
-
-        for i in range(0, self.size*self.size):
-            row = i / self.size
-            column = i % self.size
-            for r in range(0, self.size):
-                same_row_var = row * self.size + r
+        
+        constraints = []
+        for i in range(0, size*size):
+            row = i / size
+            column = i % size
+            for r in range(0, size):
+                same_row_var = row * size + r
                 if same_row_var != i:
-                    self.add_constraint(i, same_row_var)
-                same_col_var = r * self.size + column
+                    self.add_constraint(constraints, i, same_row_var)
+                same_col_var = r * size + column
                 if same_col_var != i:
-                    self.add_constraint(i, same_col_var)
+                    self.add_constraint(constraints, i, same_col_var)
             
-            quadrant_size = int(math.sqrt(self.size))
-            quadrant_x = row / quadrant_size
-            quadrant_y = column / quadrant_size
-            for x in range(int(quadrant_x * quadrant_size), int((quadrant_x + 1) * quadrant_size)):
-                for y in range(int(quadrant_y * quadrant_size), int((quadrant_y + 1) * quadrant_size)):
-                    var = x * self.size + y
+            quadrant_size = int(math.sqrt(size))
+            quadrant_x = int(row / quadrant_size)
+            quadrant_y = int(column / quadrant_size)
+            for x in range(quadrant_x * quadrant_size, (quadrant_x + 1) * quadrant_size):
+                for y in range(quadrant_y * quadrant_size, (quadrant_y + 1) * quadrant_size):
+                    var = x * size + y
                     if var != i:
-                        self.add_constraint(var, i) 
+                        self.add_constraint(constraints, var, i) 
+
+        return constraints
             
 
-    def add_constraint(self, var1, var2):
+    def add_constraint(self, constraints, var1, var2):
         """Adds a constraint to the problem.
 
         Given two variables, add them as a pair in the constraints,
@@ -104,14 +114,8 @@ class Sudoku:
 
         variables = sorted([var1, var2])
         constraint = (self.constraint_type, variables)
-        if not constraint in self.constraints:
-            self.constraints.append(constraint)
-
-    def get_variables(self):
-        return self.variables
-
-    def get_constraints(self):
-        return self.constraints
+        if not constraint in constraints:
+            constraints.append(constraint)
 
     def translate_solution(self, variables):
         """Returns the solution to the sudoku as a printable string.
@@ -125,7 +129,6 @@ class Sudoku:
             domain.add(value)
             solution += str(value)
             
-
         return solution
 
 

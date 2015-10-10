@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-# File: cspproblem
+# File: csproblem
 # A class representing CSP problem
 # Authors:  Georgi Terziev      g.d.terziev@gmail.com
 #           Kasper Bouwens      kas_bouwens@hotmail.com
@@ -9,7 +9,7 @@ import copy
 import sys
 import constraints as cs
 
-class CSPProblem:
+class CSProblem:
     """A CSP problem.
     
     A class representing an instance of a CSP problem
@@ -48,9 +48,6 @@ class CSPProblem:
     def add_constraints(self, constraints):
         self.constraints.extend(copy.deepcopy(constraints))
 
-    def constraint_key(self, constraint):
-        return min(map(lambda var: self.variable_domain_sizes[var], constraint[1]))
-
     def constraint_propagation(self, optimized):
         """Performs constraint propagation on the CSP problem"""
 
@@ -65,6 +62,9 @@ class CSPProblem:
                 return False
 
         return True
+
+    def constraint_key(self, constraint):
+        return min(map(lambda var: self.variable_domain_sizes[var], constraint[1]))
 
     def optimized_constraint_propagation(self):
         #order constriants by their variables' domain sizes
@@ -100,6 +100,16 @@ class CSPProblem:
         if not 1 in domain_sizes:
             return True, True, False
 
+        delete_constraint = True
+        domain_sizes = map(lambda var: self.variable_domain_sizes[var], variables)
+        has_domain_with_several_values = False
+        for domain_size in domain_sizes:
+            if domain_size != 1:
+                if has_domain_with_several_values == True:
+                    delete_constraint = False
+                    break
+                has_domain_with_several_values = True
+
         domains = map(lambda var: self.variable_domains[var], variables)
         domains = constraint_type(domains)
         for i, domain in enumerate(domains):
@@ -108,7 +118,8 @@ class CSPProblem:
 
         domain_sizes = map(lambda var: self.variable_domain_sizes[var], variables)
         consistent = not 0 in domain_sizes
-        return consistent, False, True
+        
+        return consistent, False, delete_constraint
                 
     def is_solved(self):
         """Checks if the CSP is solved.
@@ -286,7 +297,7 @@ class CSPProblem:
         Returns a deep copy of the puzzle.
         Changing the copy will not affect the original."""
 
-        csp_copy = CSPProblem()
+        csp_copy = CSProblem()
 
         csp_copy.variable_domains = copy.deepcopy(self.variable_domains)
         csp_copy.variable_domain_sizes = copy.deepcopy(self.variable_domain_sizes)
