@@ -47,6 +47,7 @@ class Sudoku:
         variables = self.initialize_variables(sudoku_string, domain)
         
         constraints = self.generate_sudoku_rules_constraints(size)
+        #constraints = self.generate_sudoku_rules_constraints_binary(size)
 
         csp = CSProblem()
         csp.set_variables(variables)
@@ -75,6 +76,30 @@ class Sudoku:
         return variables
 
     def generate_sudoku_rules_constraints(self, size):
+        constraints = []
+        for row in range(0, size):
+            same_row = []
+            same_col = []
+            for col in range(0, size):
+                same_row.append(row * size + col)
+                same_col.append(col * size + row)
+            constraints.append((self.constraint_type, same_row))
+            constraints.append((self.constraint_type, same_col))
+
+        quadrant_size = int(math.sqrt(size))
+        for quadrant_x in range(0, quadrant_size):
+            for quadrant_y in range(0, quadrant_size):
+                same_quadrant = []
+                for x in range(0, quadrant_size):
+                    for y in range(0, quadrant_size):
+                        row = quadrant_x * quadrant_size + x
+                        col = quadrant_y * quadrant_size + y
+                        same_quadrant.append(row * size + col)
+                constraints.append((self.constraint_type, same_quadrant))
+        
+        return constraints
+
+    def generate_sudoku_rules_constraints_binary(self, size):
         """Generate the constraints defining the sudoku rules.
 
         Generates a set of pairs of variables.

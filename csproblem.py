@@ -70,6 +70,8 @@ class CSProblem:
         #order constriants by their variables' domain sizes
         self.constraints.sort(key=self.constraint_key)
         
+        all_binary = max(map(lambda constraint: len(constraint[1]), self.constraints)) == 2
+
         #do constraint propagation
         while self.constraints and self.constraint_key(self.constraints[0]) == 1:
             i = 0
@@ -86,6 +88,9 @@ class CSProblem:
                 if stop:
                     break
                 i += 1
+
+            if not all_binary:
+                break
 
             self.constraints.sort(key=self.constraint_key)
 
@@ -147,7 +152,7 @@ class CSProblem:
         for variable, domain in sorted_variable_domains:
             state += str(variable) + ': ' + str(domain) + '\n'
 
-        return state
+        print state
 
     def get_variable_domain(self, variable, sort_values):
         """Return the domain of the variable.
