@@ -46,8 +46,8 @@ class Sudoku:
 
         variables = self.initialize_variables(sudoku_string, domain)
         
-        constraints = self.generate_sudoku_rules_constraints(size)
-        #constraints = self.generate_sudoku_rules_constraints_binary(size)
+        #constraints = self.generate_sudoku_rules_constraints(size)
+        constraints = self.generate_sudoku_rules_constraints_binary(size)
 
         csp = CSProblem()
         csp.set_variables(variables)

@@ -202,12 +202,14 @@ class CSProblem:
             smallest_domain_size = sys.maxint
             for var in related_variables:
                 domain = self.variable_domains[var]
-                domain_size = len(domain)
                 if value in domain:
-                    domain_size -= 1
-                if domain_size < smallest_domain_size:
-                    smallest_domain_size = domain_size
-            related_domain_sizes.append((domain_size, value))
+                    domain_size = len(domain)
+                    if domain_size == 1:
+                        smallest_domain_size = sys.maxint
+                        break
+                    if domain_size < smallest_domain_size:
+                        smallest_domain_size = domain_size
+            related_domain_sizes.append((smallest_domain_size, value))
 
         related_domain_sizes.sort()#default = smallest tightness first
         return zip(*related_domain_sizes)[1]

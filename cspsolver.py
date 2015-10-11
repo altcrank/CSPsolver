@@ -86,6 +86,7 @@ def main(argv):
         solutions.write(solutionString+ '\n')
         solutions.flush()
         total_splits += splits
+        print splits
         nsudokus +=1
 
     print 'Total number of splits done: ' + str(total_splits)
