@@ -272,7 +272,7 @@ class CSProblem:
                 if var in variables:
                     nconstraints[var] += 1
 
-        return min(nconstraints.iteritems(), key=lambda k_v_pair: k_v_pair[1])[0]
+        return max(nconstraints.iteritems(), key=lambda k_v_pair: k_v_pair[1])[0]
 
     #TODO: This is unused and left because it might turn out needed later.
     #Try not to use it though.

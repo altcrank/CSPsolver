@@ -8,6 +8,7 @@
 import sys
 from sudoku import Sudoku
 from csproblem import CSProblem
+import time
 
 splits = 0
 """A global variable used by the solve_CSP function,
@@ -52,7 +53,7 @@ def solve_CSP(problem):
         return True, problem.get_solution()
 
     variable = problem.get_variable_for_splitting(True, False)#MRV?, MCV?
-    domain = problem.get_variable_domain(variable, 0)#SVH: 0 == None, 1 == by tightness, otherwise domain sizes
+    domain = problem.get_variable_domain(variable, 1)#SVH: 0 == None, 1 == by tightness, otherwise domain sizes
 
     for value in domain:
         new_problem = problem.copy()
@@ -86,10 +87,10 @@ def main(argv):
         solutions.write(solutionString+ '\n')
         solutions.flush()
         total_splits += splits
-        print splits
         nsudokus +=1
 
     print 'Total number of splits done: ' + str(total_splits)
+    sys.stdout.flush()
     sudokus.close()
     solutions.close()
 
